@@ -1,0 +1,1532 @@
+/* ==========================================================================
+   SHIELDSCORE — CyberSathi
+   Same single dark theme as Home / ThreatCheck / ScamSense / CyberGuide
+   (deep navy-indigo + electric blue / violet). Every rule is scoped under
+   .shield-score-page.
+
+   Import in ShieldScore.jsx:   import "./ShieldScore.css";
+
+   Covers all three screens of the component:
+     A) Start screen        -> ss-start-screen
+     B) Assessment screen    -> ss-assessment-screen (progress + question card)
+     C) Result screen        -> ss-result-screen (score, breakdown, weak areas,
+                                 recommendations, actions)
+
+   Note: unlike Home/ThreatCheck/ScamSense/CyberGuide, this component's
+   navbar and footer wrap their content in an extra "-inner" container
+   (ss-navbar-inner / ss-footer-inner) rather than nesting content directly
+   under <nav>/<footer>. This file follows that structure.
+
+   A light neutraliser (section 3) is still included as a defensive measure,
+   since <section className="ss-question-card"> and <section
+   className="ss-score-card"> could in theory collide with the home
+   stylesheet's structural selectors depending on how <main> is nested.
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. DESIGN TOKENS (identical to the other pages; scoped to this page)
+   ========================================================================== */
+
+.shield-score-page {
+  /* Brand */
+  --primary: #4f7cff;
+  --primary-dark: #3b66f0;
+  --primary-rgb: 79, 124, 255;
+  --violet: #8b5cf6;
+  --violet-rgb: 139, 92, 246;
+  --primary-light: #9db7ff;
+
+  /* Alert colour (weak areas / emergency helpline) */
+  --danger-rgb: 244, 63, 94;
+  --danger-light: #fb8ea0;
+
+  /* Success colour (no weak areas / strong category) */
+  --success-rgb: 45, 212, 150;
+  --success-light: #6ee7b7;
+
+  /* One base colour for the entire page */
+  --bg: #0a0f1f;
+
+  /* Surfaces */
+  --surface: rgba(255, 255, 255, 0.035);
+  --surface-strong: rgba(255, 255, 255, 0.06);
+
+  /* Text */
+  --text: #eef2ff;
+  --text-2: #a9b4cf;
+  --text-muted: #7f8ba8;
+
+  /* Lines */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-accent: rgba(var(--primary-rgb), 0.45);
+
+  /* Shadows */
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.28);
+  --glow-btn: 0 8px 24px rgba(var(--primary-rgb), 0.32);
+  --glow-btn-hover: 0 12px 32px rgba(var(--primary-rgb), 0.44);
+
+  /* Radius */
+  --radius-btn: 10px;
+  --radius-card: 18px;
+  --radius-badge: 30px;
+
+  /* Spacing */
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 20px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 48px;
+  --space-9: 64px;
+  --space-10: 80px;
+
+  /* Layout */
+  --container: 1180px;
+  --content: 880px; /* width of assessment / result cards */
+  --gutter: max(7%, calc((100% - var(--container)) / 2));
+
+  --ease: 220ms ease;
+  --font: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+
+/* ==========================================================================
+   2. PAGE BASE
+   ========================================================================== */
+
+:where(.shield-score-page, .shield-score-page *, .shield-score-page *::before, .shield-score-page *::after) {
+  box-sizing: border-box;
+}
+
+:where(.shield-score-page *) {
+  margin: 0;
+  padding: 0;
+}
+
+.shield-score-page {
+  min-height: 100vh;
+
+  font-family: var(--font);
+  color: var(--text);
+  line-height: 1.6;
+
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(900px 520px at 88% 42%, rgba(var(--violet-rgb), 0.08), transparent 65%),
+    radial-gradient(900px 520px at 8% 72%, rgba(var(--primary-rgb), 0.08), transparent 65%);
+  background-repeat: no-repeat;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.shield-score-page a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.shield-score-page button {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shield-score-page ::selection {
+  background: rgba(var(--primary-rgb), 0.4);
+  color: #ffffff;
+}
+
+.shield-score-page :focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+
+/* ==========================================================================
+   3. NEUTRALISER — defensive: blocks the home page's structural rules
+      (`main > section:first-child`, `main > section:nth-child(2) > div > div`)
+      from leaking into <section className="ss-question-card"> or
+      <section className="ss-score-card"> if this CSS ever loads alongside
+      the home stylesheet.
+   ========================================================================== */
+
+.shield-score-page .ss-question-card,
+.shield-score-page .ss-score-card {
+  max-width: none;
+  transform: none;
+  transition: none;
+}
+
+.shield-score-page .ss-question-card::before,
+.shield-score-page .ss-question-card::after,
+.shield-score-page .ss-score-card::before,
+.shield-score-page .ss-score-card::after {
+  content: none;
+  display: none;
+}
+
+.shield-score-page .ss-question-card:hover,
+.shield-score-page .ss-score-card:hover {
+  transform: none;
+}
+
+/* --- Navbar leak fix --------------------------------------------------------
+   Home's unscoped "nav > div:first-child" / "nav > div:last-child" rules
+   match .ss-navbar-inner here, because it is the ONLY child of <nav> — so
+   it is simultaneously first-child and last-child at once. The first-child
+   rule sets -webkit-text-fill-color: transparent for a gradient logo; that
+   then inherits into every descendant, including the "Get Started" button
+   text, making it invisible. These resets cancel it. The two-class
+   selector below always outranks the plain-element home rule, so this fix
+   is reliable regardless of load order. */
+
+.shield-score-page .ss-navbar-inner {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  color: var(--text);
+}
+
+
+/* ==========================================================================
+   4. NAVBAR
+   ========================================================================== */
+
+.shield-score-page .ss-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  width: 100%;
+  padding: 0 var(--gutter);
+
+  background: rgba(10, 15, 31, 0.72);
+  border-bottom: 1px solid var(--border);
+
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  backdrop-filter: saturate(160%) blur(16px);
+}
+
+.shield-score-page .ss-navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+
+  padding: 14px 0;
+}
+
+/* Brand (hover repeats the gradient so the text never disappears) */
+.shield-score-page .ss-brand,
+.shield-score-page .ss-brand:hover {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+
+  background: linear-gradient(135deg, #ffffff 0%, var(--primary-light) 55%, #b9a2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.shield-score-page .ss-nav-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.shield-score-page .ss-nav-links a {
+  padding: 8px 12px;
+  border-radius: 8px;
+
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    color var(--ease),
+    background-color var(--ease);
+}
+
+.shield-score-page .ss-nav-links a:hover {
+  color: #ffffff;
+  background: var(--surface-strong);
+}
+
+/* Current page */
+.shield-score-page .ss-nav-links .ss-active,
+.shield-score-page .ss-nav-links .ss-active:hover {
+  color: #ffffff;
+  background: rgba(var(--primary-rgb), 0.16);
+}
+
+/* "Get Started" */
+.shield-score-page .ss-nav-links .ss-get-started {
+  margin-left: var(--space-2);
+  padding: 10px 18px;
+  border-radius: var(--radius-btn);
+
+  background: var(--primary);
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: var(--glow-btn);
+  transition:
+    background-color var(--ease),
+    transform var(--ease),
+    box-shadow var(--ease);
+}
+
+.shield-score-page .ss-nav-links .ss-get-started:hover {
+  background: var(--primary-dark);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: var(--glow-btn-hover);
+}
+
+
+/* ==========================================================================
+   5. SHARED PIECES (badge, buttons) used across all three screens
+   ========================================================================== */
+
+.shield-score-page .ss-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 6px 14px;
+  margin-bottom: var(--space-5);
+
+  border-radius: var(--radius-badge);
+  background: rgba(var(--primary-rgb), 0.12);
+  border: 1px solid rgba(var(--primary-rgb), 0.35);
+
+  color: var(--primary-light);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.shield-score-page .ss-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 15px 30px;
+
+  border-radius: var(--radius-btn);
+  background: var(--primary);
+  color: #ffffff;
+
+  font-size: 15.5px;
+  font-weight: 600;
+
+  box-shadow: var(--glow-btn);
+  transition:
+    background-color var(--ease),
+    transform var(--ease),
+    box-shadow var(--ease);
+}
+
+.shield-score-page .ss-primary-btn:hover {
+  background: var(--primary-dark);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: var(--glow-btn-hover);
+}
+
+.shield-score-page .ss-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 15px 30px;
+
+  border-radius: var(--radius-btn);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+
+  font-size: 15.5px;
+  font-weight: 600;
+
+  transition:
+    background-color var(--ease),
+    border-color var(--ease),
+    transform var(--ease);
+}
+
+.shield-score-page .ss-secondary-btn:hover {
+  background: var(--surface-strong);
+  border-color: var(--border-accent);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+
+/* ==========================================================================
+   6. START SCREEN
+   ========================================================================== */
+
+.shield-score-page .ss-start-screen {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: calc(100vh - 69px);
+  padding: 96px var(--gutter);
+
+  text-align: center;
+
+  background:
+    radial-gradient(ellipse 60% 55% at 50% -6%, rgba(var(--primary-rgb), 0.26), transparent 70%),
+    radial-gradient(circle at 10% 35%, rgba(var(--primary-rgb), 0.1), transparent 36%),
+    radial-gradient(circle at 90% 38%, rgba(var(--violet-rgb), 0.12), transparent 36%);
+}
+
+/* faint dot grid, shared by all three full-page screens */
+.shield-score-page .ss-start-screen::before,
+.shield-score-page .ss-result-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  background-image: radial-gradient(rgba(157, 183, 255, 0.35) 1px, transparent 1.3px);
+  background-size: 30px 30px;
+  opacity: 0.32;
+
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 40%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 40%, #000 0%, transparent 78%);
+}
+
+.shield-score-page .ss-start-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 640px;
+}
+
+.shield-score-page .ss-start-screen h1 {
+  max-width: 600px;
+  margin: 0 auto var(--space-4);
+  padding-bottom: 0.06em;
+
+  font-size: clamp(34px, 5.4vw, 52px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+
+  background: linear-gradient(135deg, #ffffff 0%, #dbe5ff 40%, var(--primary-light) 72%, #b9a2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.shield-score-page .ss-start-description {
+  max-width: 540px;
+  margin: 0 auto var(--space-7);
+
+  color: var(--text-2);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+/* 12 Questions | 4 Categories | 5–7 Minutes */
+.shield-score-page .ss-start-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+
+  margin-bottom: var(--space-7);
+  padding: var(--space-4) var(--space-6);
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.shield-score-page .ss-info-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.shield-score-page .ss-info-item strong {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.shield-score-page .ss-info-item span {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.shield-score-page .ss-info-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--border-strong);
+}
+
+.shield-score-page .ss-start-note {
+  margin-top: var(--space-4);
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+
+/* ==========================================================================
+   7. ASSESSMENT SCREEN
+   ========================================================================== */
+
+.shield-score-page .ss-assessment-screen {
+  width: 100%;
+  padding: var(--space-8) var(--gutter) 96px;
+}
+
+.shield-score-page .ss-assessment-container {
+  max-width: var(--content);
+  margin: 0 auto;
+}
+
+/* --- Top row: label/heading + category pill ------------------------------ */
+
+.shield-score-page .ss-assessment-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.shield-score-page .ss-assessment-label {
+  display: block;
+  margin-bottom: 6px;
+
+  color: var(--primary-light);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.shield-score-page .ss-assessment-top h1 {
+  color: #ffffff;
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.shield-score-page .ss-assessment-top h1 span {
+  color: var(--text-muted);
+  font-size: 0.6em;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.shield-score-page .ss-question-category {
+  padding: 6px 14px;
+  border-radius: var(--radius-badge);
+
+  background: rgba(var(--violet-rgb), 0.16);
+  border: 1px solid rgba(var(--violet-rgb), 0.38);
+  color: #c4b0ff;
+
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* --- Progress -------------------------------------------------------------- */
+
+.shield-score-page .ss-progress-area {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.shield-score-page .ss-progress-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.shield-score-page .ss-progress-fill {
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--primary), var(--violet));
+  transition: width 400ms ease;
+}
+
+.shield-score-page .ss-progress-area > span {
+  flex-shrink: 0;
+  color: var(--primary-light);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Question card --------------------------------------------------------- */
+
+.shield-score-page .ss-question-card {
+  position: relative;
+
+  padding: var(--space-7);
+
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgba(var(--primary-rgb), 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+}
+
+.shield-score-page .ss-question-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-4);
+  padding: 0 4px;
+
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.18);
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.shield-score-page .ss-question-card h2 {
+  margin: 0 0 var(--space-6);
+
+  color: #ffffff;
+  font-size: clamp(19px, 2.2vw, 23px);
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+/* --- Options --------------------------------------------------------------- */
+
+.shield-score-page .ss-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.shield-score-page .ss-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  color: var(--text);
+
+  text-align: left;
+
+  transition:
+    background-color var(--ease),
+    border-color var(--ease),
+    box-shadow var(--ease);
+}
+
+.shield-score-page .ss-option:hover {
+  background: var(--surface-strong);
+  border-color: var(--border-accent);
+}
+
+.shield-score-page .ss-option-selected,
+.shield-score-page .ss-option-selected:hover {
+  background: rgba(var(--primary-rgb), 0.16);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.18);
+}
+
+.shield-score-page .ss-option-letter {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-strong);
+  color: var(--text-2);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  transition:
+    background-color var(--ease),
+    border-color var(--ease),
+    color var(--ease);
+}
+
+.shield-score-page .ss-option-selected .ss-option-letter {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.shield-score-page .ss-option-text {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.shield-score-page .ss-option-radio {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+
+  border: 2px solid var(--border-strong);
+  transition:
+    background-color var(--ease),
+    border-color var(--ease);
+}
+
+.shield-score-page .ss-option-selected .ss-option-radio {
+  border-color: var(--primary);
+  border-width: 6px;
+  background: var(--primary);
+}
+
+/* --- Footer: hint text + next button ---------------------------------------- */
+
+.shield-score-page .ss-question-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.shield-score-page .ss-question-footer > span {
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+.shield-score-page .ss-next-btn {
+  padding: 12px var(--space-5);
+
+  border-radius: var(--radius-btn);
+  background: var(--primary);
+  color: #ffffff;
+
+  font-size: 14.5px;
+  font-weight: 600;
+
+  box-shadow: var(--glow-btn);
+  transition:
+    background-color var(--ease),
+    transform var(--ease),
+    box-shadow var(--ease);
+}
+
+.shield-score-page .ss-next-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--glow-btn-hover);
+}
+
+.shield-score-page .ss-next-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
+/* ==========================================================================
+   8. RESULT SCREEN
+   ========================================================================== */
+
+.shield-score-page .ss-result-screen {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  width: 100%;
+  padding: 88px var(--gutter) 96px;
+
+  background:
+    radial-gradient(ellipse 60% 45% at 50% -6%, rgba(var(--primary-rgb), 0.22), transparent 70%),
+    radial-gradient(circle at 10% 30%, rgba(var(--primary-rgb), 0.08), transparent 36%),
+    radial-gradient(circle at 90% 34%, rgba(var(--violet-rgb), 0.1), transparent 36%);
+}
+
+.shield-score-page .ss-result-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+
+  max-width: var(--content);
+  margin: 0 auto;
+}
+
+.shield-score-page .ss-result-header {
+  text-align: center;
+  animation: ss-rise 320ms ease both;
+}
+
+.shield-score-page .ss-result-header h1 {
+  max-width: 600px;
+  margin: var(--space-1) auto var(--space-3);
+  padding-bottom: 0.06em;
+
+  font-size: clamp(32px, 4.6vw, 46px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+
+  background: linear-gradient(135deg, #ffffff 0%, #dbe5ff 40%, var(--primary-light) 72%, #b9a2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.shield-score-page .ss-result-header p {
+  max-width: 520px;
+  margin: 0 auto;
+
+  color: var(--text-2);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+/* --- Score card -------------------------------------------------------------- */
+
+.shield-score-page .ss-score-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+
+  padding: var(--space-6) var(--space-7);
+
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(var(--primary-rgb), 0.16), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(var(--primary-rgb), 0.32);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md), 0 0 40px -14px rgba(var(--primary-rgb), 0.5);
+
+  animation: ss-rise 380ms ease both;
+}
+
+.shield-score-page .ss-score-circle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(var(--primary-rgb), 0.4);
+  box-shadow:
+    inset 0 0 0 6px rgba(var(--primary-rgb), 0.14),
+    0 0 30px -6px rgba(var(--primary-rgb), 0.6);
+}
+
+.shield-score-page .ss-score-circle > div {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.shield-score-page .ss-score-circle strong {
+  color: #ffffff;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.shield-score-page .ss-score-circle span {
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.shield-score-page .ss-score-content {
+  flex: 1;
+}
+
+.shield-score-page .ss-score-label {
+  display: inline-block;
+  margin-bottom: var(--space-2);
+  padding: 4px 12px;
+
+  border-radius: var(--radius-badge);
+  background: rgba(var(--primary-rgb), 0.16);
+  border: 1px solid rgba(var(--primary-rgb), 0.4);
+  color: var(--primary-light);
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.shield-score-page .ss-score-content h2 {
+  margin: 0 0 var(--space-1);
+
+  color: #ffffff;
+  font-size: clamp(19px, 2.2vw, 23px);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.shield-score-page .ss-score-content p {
+  color: var(--text-2);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+/* --- Generic ".ss-section" wrapper (Breakdown / Weak areas / Recommended) --- */
+
+.shield-score-page .ss-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.shield-score-page .ss-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.shield-score-page .ss-section-heading > span {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-top: 2px;
+
+  border-radius: 10px;
+  background: rgba(var(--primary-rgb), 0.14);
+  border: 1px solid rgba(var(--primary-rgb), 0.32);
+
+  color: var(--primary-light);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.shield-score-page .ss-section-heading h2 {
+  margin: 0 0 4px;
+
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.shield-score-page .ss-section-heading p {
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* --- Category breakdown ------------------------------------------------------ */
+
+.shield-score-page .ss-category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+.shield-score-page .ss-category-card {
+  padding: var(--space-4) var(--space-5);
+
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.shield-score-page .ss-category-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.shield-score-page .ss-category-top h3 {
+  color: var(--text);
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.shield-score-page .ss-category-top strong {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.shield-score-page .ss-category-track {
+  height: 8px;
+  margin-bottom: var(--space-2);
+
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.shield-score-page .ss-category-fill {
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--primary), var(--violet));
+
+  transform-origin: left center;
+  animation: ss-fill 900ms ease-out both;
+}
+
+.shield-score-page .ss-category-card > span {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* --- Weak areas --------------------------------------------------------------- */
+
+.shield-score-page .ss-weak-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.shield-score-page .ss-weak-item,
+.shield-score-page .ss-no-weak-area {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+
+  padding: var(--space-4) var(--space-5);
+  border-radius: 14px;
+}
+
+.shield-score-page .ss-weak-item {
+  background: rgba(var(--danger-rgb), 0.1);
+  border: 1px solid rgba(var(--danger-rgb), 0.3);
+}
+
+.shield-score-page .ss-no-weak-area {
+  background: rgba(var(--success-rgb), 0.1);
+  border: 1px solid rgba(var(--success-rgb), 0.3);
+}
+
+.shield-score-page .ss-weak-icon,
+.shield-score-page .ss-success-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.shield-score-page .ss-weak-icon {
+  background: rgba(var(--danger-rgb), 0.2);
+  color: var(--danger-light);
+}
+
+.shield-score-page .ss-success-icon {
+  background: rgba(var(--success-rgb), 0.2);
+  color: var(--success-light);
+}
+
+.shield-score-page .ss-weak-item h3,
+.shield-score-page .ss-no-weak-area h3 {
+  margin: 0 0 4px;
+
+  color: #ffffff;
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.shield-score-page .ss-weak-item p,
+.shield-score-page .ss-no-weak-area p {
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* --- Recommended learning ------------------------------------------------------ */
+
+.shield-score-page .ss-recommendations {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.shield-score-page .ss-recommendation-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  padding: var(--space-4) var(--space-4);
+
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+
+  transition:
+    background-color var(--ease),
+    border-color var(--ease),
+    transform var(--ease);
+}
+
+.shield-score-page .ss-recommendation-card:hover {
+  background: var(--surface-strong);
+  border-color: var(--border-accent);
+  transform: translateY(-3px);
+}
+
+.shield-score-page .ss-recommendation-card > span:first-child {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+
+  border-radius: 10px;
+  background: rgba(var(--primary-rgb), 0.16);
+  border: 1px solid rgba(var(--primary-rgb), 0.35);
+
+  color: var(--primary-light);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.shield-score-page .ss-recommendation-card > div {
+  flex: 1;
+}
+
+.shield-score-page .ss-recommendation-card h3 {
+  margin: 0 0 2px;
+
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.shield-score-page .ss-recommendation-card p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.shield-score-page .ss-recommendation-card > strong {
+  flex-shrink: 0;
+  color: var(--primary-light);
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform var(--ease);
+}
+
+.shield-score-page .ss-recommendation-card:hover > strong {
+  transform: translateX(3px);
+}
+
+/* --- Result actions ------------------------------------------------------------ */
+
+.shield-score-page .ss-result-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+
+  padding-top: var(--space-2);
+}
+
+
+/* ==========================================================================
+   9. FOOTER — same base colour, separated by a hairline
+   ========================================================================== */
+
+.shield-score-page .ss-footer {
+  padding: 0 var(--gutter);
+  border-top: 1px solid var(--border);
+  color: var(--text);
+}
+
+.shield-score-page .ss-footer-inner {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: var(--space-8);
+
+  padding: 72px 0 var(--space-6);
+}
+
+.shield-score-page .ss-footer h3 {
+  margin-bottom: var(--space-2);
+
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.shield-score-page .ss-footer h4 {
+  margin-bottom: var(--space-1);
+
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.shield-score-page .ss-footer p {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.shield-score-page .ss-footer-brand p {
+  max-width: 320px;
+}
+
+.shield-score-page .ss-footer-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.shield-score-page .ss-footer-column a {
+  color: var(--text-2);
+  font-size: 14px;
+  transition: color var(--ease);
+}
+
+.shield-score-page .ss-footer-column a:hover {
+  color: var(--primary-light);
+}
+
+/* "Emergency Help" column: plain label + big number + link
+   (this page has no dedicated red card element in JSX, so the emphasis is
+   carried by the big number itself, styled in the same danger tone used
+   on the other pages' helpline cards) */
+.shield-score-page .ss-footer-column p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.shield-score-page .ss-footer-column strong {
+  display: block;
+  margin: 2px 0 4px;
+
+  color: var(--danger-light);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.shield-score-page .ss-footer-column strong + a {
+  align-self: flex-start;
+  color: var(--primary-light);
+  font-weight: 600;
+}
+
+.shield-score-page .ss-footer-column strong + a:hover {
+  color: #ffffff;
+}
+
+/* Copyright bar */
+.shield-score-page .ss-footer-bottom {
+  padding: var(--space-5) 0 var(--space-6);
+  border-top: 1px solid var(--border);
+
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+
+/* ==========================================================================
+   10. RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 900px) {
+
+  .shield-score-page .ss-navbar-inner {
+    padding: 12px 0;
+  }
+
+  .shield-score-page .ss-nav-links {
+    gap: 4px;
+  }
+
+  .shield-score-page .ss-start-screen {
+    padding: 72px 6% 80px;
+  }
+
+  .shield-score-page .ss-start-info {
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-5);
+  }
+
+  .shield-score-page .ss-question-card {
+    padding: var(--space-6);
+  }
+
+  .shield-score-page .ss-score-card {
+    padding: var(--space-5);
+  }
+
+  .shield-score-page .ss-category-grid,
+  .shield-score-page .ss-recommendations {
+    grid-template-columns: 1fr;
+  }
+
+  .shield-score-page .ss-footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-7);
+  }
+
+  .shield-score-page .ss-footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+
+@media (max-width: 650px) {
+
+  .shield-score-page {
+    --gutter: 5%;
+  }
+
+  /* Navbar: compact rows; not sticky on phones (saves screen space) */
+  .shield-score-page .ss-navbar {
+    position: relative;
+  }
+
+  .shield-score-page .ss-navbar-inner {
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+  }
+
+  .shield-score-page .ss-nav-links {
+    justify-content: center;
+    gap: 4px var(--space-1);
+  }
+
+  .shield-score-page .ss-nav-links a {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .shield-score-page .ss-nav-links .ss-get-started {
+    margin-left: 0;
+    padding: 8px 14px;
+  }
+
+  /* Start screen */
+  .shield-score-page .ss-start-screen {
+    padding: 56px 5% 64px;
+  }
+
+  .shield-score-page .ss-start-description {
+    font-size: 15.5px;
+  }
+
+  .shield-score-page .ss-start-info {
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-3);
+  }
+
+  .shield-score-page .ss-info-item strong {
+    font-size: 22px;
+  }
+
+  .shield-score-page .ss-primary-btn,
+  .shield-score-page .ss-secondary-btn {
+    width: 100%;
+  }
+
+  /* Assessment */
+  .shield-score-page .ss-assessment-screen {
+    padding: var(--space-6) var(--gutter) var(--space-9);
+  }
+
+  .shield-score-page .ss-assessment-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .shield-score-page .ss-question-card {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .shield-score-page .ss-option {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .shield-score-page .ss-question-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shield-score-page .ss-next-btn {
+    width: 100%;
+  }
+
+  /* Result */
+  .shield-score-page .ss-result-screen {
+    padding: 56px 5% var(--space-9);
+  }
+
+  .shield-score-page .ss-score-card {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--space-6) var(--space-5);
+  }
+
+  .shield-score-page .ss-score-circle {
+    width: 128px;
+    height: 128px;
+  }
+
+  .shield-score-page .ss-score-circle strong {
+    font-size: 38px;
+  }
+
+  .shield-score-page .ss-result-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shield-score-page .ss-result-actions .ss-primary-btn,
+  .shield-score-page .ss-result-actions .ss-secondary-btn {
+    width: 100%;
+  }
+
+  /* Footer */
+  .shield-score-page .ss-footer-inner {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    padding: var(--space-9) 0 var(--space-5);
+  }
+}
+
+
+@media (max-width: 380px) {
+
+  .shield-score-page .ss-start-screen h1,
+  .shield-score-page .ss-result-header h1 {
+    font-size: 30px;
+  }
+
+  .shield-score-page .ss-brand {
+    font-size: 22px;
+  }
+
+  .shield-score-page .ss-start-info {
+    flex-wrap: wrap;
+    row-gap: var(--space-3);
+  }
+}
+
+
+/* ==========================================================================
+   11. MOTION
+   ========================================================================== */
+
+@keyframes ss-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ss-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .shield-score-page .ss-result-header,
+  .shield-score-page .ss-score-card,
+  .shield-score-page .ss-category-fill {
+    animation: none;
+  }
+
+  .shield-score-page .ss-primary-btn:hover,
+  .shield-score-page .ss-secondary-btn:hover,
+  .shield-score-page .ss-next-btn:hover:not(:disabled),
+  .shield-score-page .ss-get-started:hover,
+  .shield-score-page .ss-recommendation-card:hover,
+  .shield-score-page .ss-recommendation-card:hover > strong {
+    transform: none;
+  }
+
+  .shield-score-page * {
+    transition-duration: 0.01ms !important;
+  }
+}

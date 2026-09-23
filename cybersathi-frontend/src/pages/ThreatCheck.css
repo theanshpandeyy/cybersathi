@@ -1,0 +1,1480 @@
+/* ==========================================================================
+   THREATCHECK — CyberSathi
+   Same single dark theme as the home page (deep navy-indigo + electric
+   blue / violet). Every rule is scoped under .threat-page so it never
+   affects other pages.
+
+   Import in ThreatCheck.jsx:   import "./ThreatCheck.css";
+
+   IMPORTANT — why section 3 exists:
+   The home stylesheet uses structural selectors such as
+   `main > section:nth-child(2) > div > div`. Vite bundles all CSS globally,
+   so those rules would also hit this page's analyzer card. Section 3
+   neutralises them. Do not delete it.
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. DESIGN TOKENS (identical to home; scoped to this page)
+   ========================================================================== */
+
+.threat-page {
+  /* Brand */
+  --primary: #4f7cff;
+  --primary-dark: #3b66f0;
+  --primary-rgb: 79, 124, 255;
+  --violet: #8b5cf6;
+  --violet-rgb: 139, 92, 246;
+  --primary-light: #9db7ff;
+
+  /* Alert colour (used only for risk / emergency signals) */
+  --danger-rgb: 244, 63, 94;
+  --danger-light: #fb8ea0;
+
+  /* One base colour for the entire page */
+  --bg: #0a0f1f;
+
+  /* Surfaces */
+  --surface: rgba(255, 255, 255, 0.035);
+  --surface-strong: rgba(255, 255, 255, 0.06);
+
+  /* Text */
+  --text: #eef2ff;
+  --text-2: #a9b4cf;
+  --text-muted: #7f8ba8;
+
+  /* Lines */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-accent: rgba(var(--primary-rgb), 0.45);
+
+  /* Shadows */
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.28);
+  --glow-btn: 0 8px 24px rgba(var(--primary-rgb), 0.32);
+  --glow-btn-hover: 0 12px 32px rgba(var(--primary-rgb), 0.44);
+
+  /* Radius */
+  --radius-btn: 10px;
+  --radius-card: 18px;
+  --radius-badge: 30px;
+
+  /* Spacing */
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 20px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 48px;
+  --space-9: 64px;
+  --space-10: 80px;
+
+  /* Layout */
+  --container: 1180px;
+  --content: 860px; /* width of analyzer + result cards */
+  --gutter: max(7%, calc((100% - var(--container)) / 2));
+
+  --ease: 220ms ease;
+  --font: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+
+/* ==========================================================================
+   2. PAGE BASE
+   ========================================================================== */
+
+/* zero-specificity reset so it never fights other rules */
+:where(.threat-page, .threat-page *, .threat-page *::before, .threat-page *::after) {
+  box-sizing: border-box;
+}
+
+:where(.threat-page *) {
+  margin: 0;
+  padding: 0;
+}
+
+.threat-page {
+  min-height: 100vh;
+
+  font-family: var(--font);
+  color: var(--text);
+  line-height: 1.6;
+
+  /* same base + soft ambient glows as the home page */
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(900px 520px at 88% 42%, rgba(var(--violet-rgb), 0.08), transparent 65%),
+    radial-gradient(900px 520px at 8% 72%, rgba(var(--primary-rgb), 0.08), transparent 65%);
+  background-repeat: no-repeat;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.threat-page a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.threat-page button {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.threat-page ::selection {
+  background: rgba(var(--primary-rgb), 0.4);
+  color: #ffffff;
+}
+
+.threat-page :focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.threat-page main > section {
+  scroll-margin-top: 72px;
+}
+
+/* shared small label ("ANALYZE", "ANALYSIS COMPLETE", ...) */
+.threat-page .section-eyebrow {
+  display: block;
+  margin-bottom: var(--space-1);
+
+  color: var(--primary-light);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+
+/* ==========================================================================
+   3. NEUTRALISER — blocks the home page's structural rules from leaking
+      into the analyzer section (see note at top of file)
+   ========================================================================== */
+
+/* Home turns these two into a 4-column grid */
+.threat-page .threat-analyzer-card,
+.threat-page .analysis-result,
+.threat-page .guide-cta-content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Home styles every direct child as a "module card" — undo that */
+.threat-page .threat-analyzer-card > div,
+.threat-page .analysis-result > div {
+  position: static;
+  display: block;
+  overflow: visible;
+  padding: 0;
+
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+  transition: none;
+}
+
+.threat-page .threat-analyzer-card > div::before,
+.threat-page .threat-analyzer-card > div::after,
+.threat-page .analysis-result > div::before,
+.threat-page .analysis-result > div::after {
+  content: none;
+  display: none;
+}
+
+.threat-page .threat-analyzer-card > div:hover,
+.threat-page .analysis-result > div:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Home gives every <p> inside those cards flex:1 + a bottom margin */
+.threat-page .threat-analyzer-card p,
+.threat-page .analysis-result p {
+  flex: none;
+  margin: 0;
+}
+
+
+/* ==========================================================================
+   4. NAVBAR
+   ========================================================================== */
+
+.threat-page .threat-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+
+  width: 100%;
+  padding: 14px var(--gutter);
+
+  background: rgba(10, 15, 31, 0.72);
+  border-bottom: 1px solid var(--border);
+
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  backdrop-filter: saturate(160%) blur(16px);
+}
+
+/* Brand (gradient text; hover state repeats it so it never disappears) */
+.threat-page .threat-brand,
+.threat-page .threat-brand:hover {
+  padding: 0;
+  border-radius: 0;
+
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+
+  background: linear-gradient(135deg, #ffffff 0%, var(--primary-light) 55%, #b9a2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.threat-page .threat-nav-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.threat-page .threat-nav-links a {
+  padding: 8px 12px;
+  border-radius: 8px;
+
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    color var(--ease),
+    background-color var(--ease);
+}
+
+.threat-page .threat-nav-links a:hover {
+  color: #ffffff;
+  background: var(--surface-strong);
+}
+
+/* Current page */
+.threat-page .threat-nav-links .threat-active-link,
+.threat-page .threat-nav-links .threat-active-link:hover {
+  color: #ffffff;
+  background: rgba(var(--primary-rgb), 0.16);
+}
+
+/* "Get Started" */
+.threat-page .threat-nav-links .threat-nav-button {
+  margin-left: var(--space-2);
+  padding: 10px 18px;
+  border-radius: var(--radius-btn);
+
+  background: var(--primary);
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: var(--glow-btn);
+  transition:
+    background-color var(--ease),
+    transform var(--ease),
+    box-shadow var(--ease);
+}
+
+.threat-page .threat-nav-links .threat-nav-button:hover {
+  background: var(--primary-dark);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: var(--glow-btn-hover);
+}
+
+
+/* ==========================================================================
+   5. HERO
+   ========================================================================== */
+
+.threat-page .threat-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 96px var(--gutter) 72px;
+
+  text-align: center;
+
+  background:
+    radial-gradient(ellipse 60% 55% at 50% -6%, rgba(var(--primary-rgb), 0.26), transparent 70%),
+    radial-gradient(circle at 10% 35%, rgba(var(--primary-rgb), 0.1), transparent 36%),
+    radial-gradient(circle at 90% 38%, rgba(var(--violet-rgb), 0.12), transparent 36%);
+}
+
+/* faint dot grid */
+.threat-page .threat-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  background-image: radial-gradient(rgba(157, 183, 255, 0.35) 1px, transparent 1.3px);
+  background-size: 30px 30px;
+  opacity: 0.32;
+
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 40%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 40%, #000 0%, transparent 78%);
+}
+
+/* "Threat Detection" badge */
+.threat-page .threat-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+
+  padding: 6px 14px;
+  margin-bottom: var(--space-5);
+
+  border-radius: var(--radius-badge);
+  background: rgba(var(--primary-rgb), 0.12);
+  border: 1px solid rgba(var(--primary-rgb), 0.35);
+
+  color: var(--primary-light);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.threat-page .threat-hero-badge span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.9);
+  flex-shrink: 0;
+}
+
+.threat-page .threat-hero h1 {
+  max-width: 760px;
+  margin: 0 auto var(--space-5);
+  padding-bottom: 0.06em;
+
+  font-size: clamp(36px, 5.6vw, 58px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+
+  background: linear-gradient(135deg, #ffffff 0%, #dbe5ff 40%, var(--primary-light) 72%, #b9a2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.threat-page .threat-hero > p {
+  max-width: 620px;
+  margin: 0 auto var(--space-6);
+
+  color: var(--text-2);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+/* "✓ Safe Analysis • No Passwords Required" */
+.threat-page .threat-safe-note {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1);
+
+  padding: 8px 16px;
+  border-radius: var(--radius-badge);
+  background: var(--surface);
+  border: 1px solid var(--border);
+
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.threat-page .threat-safe-note > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+
+  background: rgba(var(--primary-rgb), 0.18);
+  color: var(--primary-light);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.threat-page .threat-safe-note .safe-dot {
+  color: var(--text-muted);
+}
+
+
+/* ==========================================================================
+   6. ANALYZER SECTION
+   ========================================================================== */
+
+.threat-page .threat-analyzer-section {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 var(--gutter) 96px;
+}
+
+/* --- Analyzer card ------------------------------------------------------- */
+
+.threat-page .threat-analyzer-card {
+  gap: var(--space-5);
+
+  max-width: var(--content);
+  margin: 0 auto;
+  padding: var(--space-7);
+
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgba(var(--primary-rgb), 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+}
+
+/* Heading block */
+.threat-page .threat-analyzer-card .analyzer-heading {
+  text-align: left;
+}
+
+.threat-page .analyzer-heading h2 {
+  margin: 0 0 var(--space-1);
+
+  text-align: left;
+  color: #ffffff;
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.threat-page .analyzer-heading p {
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* Form labels */
+.threat-page .input-type-wrapper > label,
+.threat-page .threat-input-wrapper > label {
+  display: block;
+  margin-bottom: var(--space-2);
+
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* --- Input type selector (segmented control) ----------------------------- */
+
+.threat-page .input-type-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border);
+}
+
+.threat-page .input-type {
+  align-self: auto;
+  padding: 10px 12px;
+
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-2);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition:
+    color var(--ease),
+    background-color var(--ease),
+    border-color var(--ease);
+}
+
+.threat-page .input-type:hover {
+  background: var(--surface-strong);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.threat-page .input-type.active,
+.threat-page .input-type.active:hover {
+  background: rgba(var(--primary-rgb), 0.2);
+  border-color: rgba(var(--primary-rgb), 0.5);
+  color: #ffffff;
+}
+
+/* --- Textarea ------------------------------------------------------------ */
+
+.threat-page .threat-input-wrapper textarea {
+  display: block;
+  width: 100%;
+  min-height: 180px;
+  padding: var(--space-3) 18px;
+
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  color: var(--text);
+
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.6;
+  resize: vertical;
+
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease);
+}
+
+.threat-page .threat-input-wrapper textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.threat-page .threat-input-wrapper textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+}
+
+.threat-page .input-footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+
+  margin-top: 10px;
+}
+
+.threat-page .safety-warning {
+  flex: 1 1 260px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.threat-page .character-count {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* --- Validation error ---------------------------------------------------- */
+
+.threat-page .threat-analyzer-card .threat-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: var(--space-2) var(--space-3);
+
+  background: rgba(var(--danger-rgb), 0.1);
+  border: 1px solid rgba(var(--danger-rgb), 0.3);
+  border-radius: 10px;
+  color: #fda4b3;
+
+  font-size: 14px;
+  line-height: 1.5;
+
+  --accent-line: rgba(var(--danger-rgb), 0.3); /* keeps border colour stable on hover */
+}
+
+.threat-page .threat-error > span {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+
+  background: rgba(var(--danger-rgb), 0.22);
+  color: var(--danger-light);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* --- Analyze button ------------------------------------------------------ */
+
+.threat-page .analyze-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  width: 100%;
+  padding: 15px var(--space-5);
+
+  border-radius: var(--radius-btn);
+  background: var(--primary);
+  color: #ffffff;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  box-shadow: var(--glow-btn);
+  transition:
+    background-color var(--ease),
+    transform var(--ease),
+    box-shadow var(--ease);
+}
+
+.threat-page .analyze-button:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--glow-btn-hover);
+}
+
+.threat-page .analyze-button > span:not(.loading-spinner) {
+  transition: transform var(--ease);
+}
+
+.threat-page .analyze-button:hover:not(:disabled) > span:not(.loading-spinner) {
+  transform: translateX(3px);
+}
+
+.threat-page .analyze-button:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.threat-page .loading-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  animation: threat-spin 0.8s linear infinite;
+}
+
+.threat-page .demo-notice {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+
+/* ==========================================================================
+   7. ANALYSIS RESULT
+   ========================================================================== */
+
+.threat-page .analysis-result {
+  gap: 28px;
+
+  max-width: var(--content);
+  margin: var(--space-5) auto 0;
+  padding: var(--space-7);
+
+  background:
+    radial-gradient(120% 50% at 100% 0%, rgba(var(--violet-rgb), 0.1), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+
+  animation: threat-rise 320ms ease both;
+}
+
+/* --- Header -------------------------------------------------------------- */
+
+.threat-page .analysis-result .result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+
+  --accent-line: rgba(255, 255, 255, 0.08);
+}
+
+.threat-page .result-header h2 {
+  margin: 0;
+
+  text-align: left;
+  color: #ffffff;
+  font-size: clamp(22px, 2.6vw, 26px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.threat-page .result-status {
+  padding: 6px 14px;
+  border-radius: var(--radius-badge);
+
+  background: rgba(var(--primary-rgb), 0.12);
+  border: 1px solid rgba(var(--primary-rgb), 0.35);
+  color: var(--primary-light);
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* --- Risk overview ------------------------------------------------------- */
+
+.threat-page .analysis-result .risk-overview {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: var(--space-3);
+  align-items: stretch;
+}
+
+.threat-page .risk-score-box {
+  padding: var(--space-5);
+
+  background: linear-gradient(180deg, rgba(var(--danger-rgb), 0.12), rgba(var(--danger-rgb), 0.05));
+  border: 1px solid rgba(var(--danger-rgb), 0.3);
+  border-radius: 14px;
+}
+
+.threat-page .risk-label {
+  display: block;
+  margin-bottom: var(--space-1);
+
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.threat-page .risk-score {
+  color: #ffffff;
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.threat-page .risk-score span {
+  margin-left: 4px;
+
+  color: var(--text-muted);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.threat-page .risk-progress {
+  height: 8px;
+  margin: var(--space-3) 0 14px;
+
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.threat-page .risk-progress-fill {
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #fb7185, #f43f5e);
+
+  transform-origin: left center;
+  animation: threat-fill 900ms ease-out both;
+}
+
+.threat-page .critical-risk {
+  display: inline-block;
+  padding: 4px var(--space-2);
+
+  border-radius: var(--radius-badge);
+  background: rgba(var(--danger-rgb), 0.16);
+  border: 1px solid rgba(var(--danger-rgb), 0.35);
+  color: var(--danger-light);
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.threat-page .threat-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.threat-page .summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+
+  padding: var(--space-3) var(--space-4);
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.threat-page .summary-item span {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.threat-page .summary-item strong {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* --- Red flags + explanation -------------------------------------------- */
+
+.threat-page .result-section h3 {
+  margin: 0 0 var(--space-2);
+
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.threat-page .red-flags {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+.threat-page .red-flag {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  padding: var(--space-2) var(--space-3);
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.threat-page .red-flag > span {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+
+  background: rgba(var(--danger-rgb), 0.18);
+  color: var(--danger-light);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.threat-page .red-flag p {
+  flex: 1;
+  color: var(--text);
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.threat-page .result-section .result-description {
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* --- Recommended action -------------------------------------------------- */
+
+.threat-page .analysis-result .recommended-action {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+
+  padding: var(--space-4) var(--space-5);
+
+  background: rgba(var(--primary-rgb), 0.1);
+  border: 1px solid rgba(var(--primary-rgb), 0.3);
+  border-radius: 14px;
+
+  --accent-line: rgba(var(--primary-rgb), 0.3);
+}
+
+.threat-page .recommendation-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.18);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.threat-page .recommended-action h3 {
+  margin: 0 0 6px;
+
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.threat-page .recommended-action p {
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* --- Learn more ---------------------------------------------------------- */
+
+.threat-page .analysis-result .learn-more-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+
+  padding: var(--space-5) 28px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(var(--primary-rgb), 0.14),
+    rgba(var(--violet-rgb), 0.12)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+
+  --accent-line: rgba(255, 255, 255, 0.1);
+}
+
+.threat-page .learn-more-card > div {
+  flex: 1 1 320px;
+}
+
+.threat-page .learn-more-card h3 {
+  margin: 0 0 6px;
+
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.threat-page .learn-more-card p {
+  max-width: 520px;
+  color: var(--text-2);
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+
+.threat-page .learn-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: var(--space-2) var(--space-4);
+
+  border-radius: var(--radius-btn);
+  background: #ffffff;
+  color: #1b2a5e;
+
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  box-shadow: 0 6px 18px rgba(var(--primary-rgb), 0.25);
+  transition:
+    background-color var(--ease),
+    transform var(--ease),
+    box-shadow var(--ease);
+}
+
+.threat-page .learn-button:hover {
+  background: #eef2ff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(var(--primary-rgb), 0.36);
+}
+
+/* --- Check another ------------------------------------------------------- */
+
+.threat-page .check-another-button {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-4);
+
+  border-radius: var(--radius-btn);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition:
+    background-color var(--ease),
+    border-color var(--ease),
+    transform var(--ease);
+}
+
+.threat-page .check-another-button:hover {
+  background: var(--surface-strong);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+}
+
+
+/* ==========================================================================
+   8. CYBERGUIDE CTA — same base colour, soft glow rising from below
+   ========================================================================== */
+
+.threat-page .threat-guide-cta {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 96px var(--gutter);
+
+  text-align: center;
+
+  background:
+    radial-gradient(ellipse 60% 90% at 50% 110%, rgba(var(--primary-rgb), 0.3), transparent 70%),
+    radial-gradient(circle at 12% 30%, rgba(var(--violet-rgb), 0.12), transparent 36%);
+  border-top: 1px solid var(--border);
+}
+
+.threat-page .threat-guide-cta .guide-cta-content {
+  display: block;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.threat-page .guide-cta-content h2 {
+  margin: 0 auto var(--space-3);
+
+  text-align: center;
+  color: #ffffff;
+  font-size: clamp(28px, 3.4vw, 36px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.threat-page .guide-cta-content > p {
+  max-width: 560px;
+  margin: 0 auto var(--space-6);
+
+  color: var(--text-2);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.threat-page .guide-cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 14px 28px;
+
+  border-radius: var(--radius-btn);
+  background: #ffffff;
+  color: #1b2a5e;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.28);
+  transition:
+    background-color var(--ease),
+    transform var(--ease),
+    box-shadow var(--ease);
+}
+
+.threat-page .guide-cta-button:hover {
+  background: #eef2ff;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(var(--primary-rgb), 0.4);
+}
+
+
+/* ==========================================================================
+   9. FOOTER — same base colour, separated by a hairline
+   ========================================================================== */
+
+.threat-page .threat-footer {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: var(--space-8);
+
+  padding: 72px var(--gutter) var(--space-6);
+
+  border-top: 1px solid var(--border);
+  color: var(--text);
+}
+
+.threat-page .threat-footer h3 {
+  margin-bottom: var(--space-2);
+
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.threat-page .threat-footer h4 {
+  margin-bottom: var(--space-1);
+
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.threat-page .threat-footer p {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.threat-page .footer-brand p {
+  max-width: 320px;
+}
+
+.threat-page .footer-links,
+.threat-page .footer-helpline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.threat-page .footer-links a {
+  color: var(--text-2);
+  font-size: 14px;
+  transition: color var(--ease);
+}
+
+.threat-page .footer-links a:hover {
+  color: var(--primary-light);
+}
+
+/* Official cyber helpline card */
+.threat-page .footer-helpline .helpline-card {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(var(--danger-rgb), 0.12), rgba(var(--danger-rgb), 0.05));
+  border: 1px solid rgba(var(--danger-rgb), 0.3);
+}
+
+.threat-page .helpline-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: 6px;
+
+  color: var(--danger-light);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* swaps the ☎ character for a clean phone icon (no JSX change) */
+.threat-page .helpline-title > span {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+
+  font-size: 0;
+  line-height: 0;
+  color: transparent;
+
+  background: no-repeat center / contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FB8EA0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'/%3E%3C/svg%3E");
+}
+
+.threat-page .footer-helpline .helpline-number {
+  display: block;
+  margin-bottom: 6px;
+
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  transition: color var(--ease);
+}
+
+.threat-page .footer-helpline .helpline-number:hover {
+  color: var(--danger-light);
+}
+
+.threat-page .footer-helpline .helpline-card p {
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.threat-page .footer-helpline .cyber-portal {
+  align-self: flex-start;
+
+  color: var(--primary-light);
+  font-size: 14px;
+  font-weight: 600;
+  transition: color var(--ease);
+}
+
+.threat-page .footer-helpline .cyber-portal:hover {
+  color: #ffffff;
+}
+
+/* Copyright row */
+.threat-page .threat-footer .footer-copyright {
+  grid-column: 1 / -1;
+
+  margin-top: var(--space-2);
+  padding-top: var(--space-5);
+
+  border-top: 1px solid var(--border);
+
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+
+/* ==========================================================================
+   10. RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 900px) {
+
+  .threat-page .threat-navbar {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .threat-page .threat-nav-links {
+    gap: 4px;
+  }
+
+  .threat-page .threat-hero {
+    padding: 80px 6% 64px;
+  }
+
+  .threat-page .threat-analyzer-card,
+  .threat-page .analysis-result {
+    padding: var(--space-6);
+  }
+
+  .threat-page .threat-footer {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-7);
+  }
+
+  .threat-page .footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+
+@media (max-width: 650px) {
+
+  .threat-page {
+    --gutter: 5%;
+  }
+
+  /* Navbar: compact rows; not sticky on phones (saves screen space) */
+  .threat-page .threat-navbar {
+    position: relative;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--gutter);
+  }
+
+  .threat-page .threat-nav-links {
+    justify-content: center;
+    gap: 4px var(--space-1);
+  }
+
+  .threat-page .threat-nav-links a {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .threat-page .threat-nav-links .threat-nav-button {
+    margin-left: 0;
+    padding: 8px 14px;
+  }
+
+  /* Hero */
+  .threat-page .threat-hero {
+    padding: 64px 5% 48px;
+  }
+
+  .threat-page .threat-hero > p {
+    font-size: 15.5px;
+  }
+
+  /* Analyzer */
+  .threat-page .threat-analyzer-section {
+    padding-bottom: var(--space-9);
+  }
+
+  .threat-page .threat-analyzer-card,
+  .threat-page .analysis-result {
+    gap: 20px;
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .threat-page .input-type-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .threat-page .threat-input-wrapper textarea {
+    min-height: 160px;
+  }
+
+  /* Result */
+  .threat-page .analysis-result .risk-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .threat-page .red-flags {
+    grid-template-columns: 1fr;
+  }
+
+  .threat-page .analysis-result .recommended-action {
+    padding: var(--space-4);
+  }
+
+  .threat-page .analysis-result .learn-more-card {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .threat-page .learn-button,
+  .threat-page .check-another-button {
+    width: 100%;
+  }
+
+  .threat-page .check-another-button {
+    align-self: stretch;
+  }
+
+  /* CTA */
+  .threat-page .threat-guide-cta {
+    padding: var(--space-9) var(--gutter);
+  }
+
+  .threat-page .guide-cta-button {
+    width: 100%;
+    max-width: 320px;
+    padding: 15px var(--space-5);
+  }
+
+  /* Footer */
+  .threat-page .threat-footer {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    padding: var(--space-9) var(--gutter) var(--space-5);
+  }
+}
+
+
+@media (max-width: 380px) {
+
+  .threat-page .threat-hero h1 {
+    font-size: 32px;
+  }
+
+  .threat-page .threat-brand,
+  .threat-page .threat-brand:hover {
+    font-size: 22px;
+  }
+
+  .threat-page .risk-score {
+    font-size: 48px;
+  }
+}
+
+
+/* ==========================================================================
+   11. MOTION
+   ========================================================================== */
+
+@keyframes threat-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* result card appears once, when analysis finishes */
+@keyframes threat-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes threat-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .threat-page .analysis-result,
+  .threat-page .risk-progress-fill {
+    animation: none;
+  }
+
+  .threat-page .loading-spinner {
+    animation-duration: 1.6s; /* still shows progress, just gentler */
+  }
+
+  .threat-page .analyze-button:hover:not(:disabled),
+  .threat-page .analyze-button:hover:not(:disabled) > span,
+  .threat-page .learn-button:hover,
+  .threat-page .guide-cta-button:hover,
+  .threat-page .threat-nav-button:hover,
+  .threat-page .check-another-button:hover {
+    transform: none;
+  }
+
+  .threat-page * {
+    transition-duration: 0.01ms !important;
+  }
+}
