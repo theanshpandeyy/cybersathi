@@ -1,0 +1,26 @@
+{
+  "services": {
+    "frontend": {
+      "root": "cybersathi-frontend/",
+      "framework": "vite"
+    },
+    "backend": {
+      "root": "cybersathi-backend/",
+      "entrypoint": "app.main:app"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ]
+}
