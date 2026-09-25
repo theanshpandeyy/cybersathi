@@ -76,7 +76,7 @@ function ThreatCheck() {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:8001/api/threatcheck",
+        "https://cybersathi-backend-fresh.vercel.app/api/threatcheck",
         {
           method: "POST",
           headers: {

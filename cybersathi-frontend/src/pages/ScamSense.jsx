@@ -334,7 +334,7 @@ function ScamSense() {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:8001/api/scamsense/attempt",
+        "https://cybersathi-backend-fresh.vercel.app/api/scamsense/attempt",
         {
           method: "POST",
           headers: {

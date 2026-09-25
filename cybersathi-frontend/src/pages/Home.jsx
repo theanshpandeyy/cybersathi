@@ -19,7 +19,7 @@ function Home() {
         setStatsError("");
 
         const response = await fetch(
-          "http://127.0.0.1:8001/api/stats"
+          "https://cybersathi-backend-fresh.vercel.app/api/stats"
         );
 
         if (!response.ok) {

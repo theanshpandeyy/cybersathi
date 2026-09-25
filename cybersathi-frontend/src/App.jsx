@@ -19,7 +19,7 @@ function App() {
     const setupParticipant = async () => {
       try {
         const response = await fetch(
-          "http://127.0.0.1:8001/api/participant"
+          "https://cybersathi-backend-fresh.vercel.app/api/participant"
         );
 
         if (!response.ok) {
