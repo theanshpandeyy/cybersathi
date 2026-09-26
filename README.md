@@ -6,12 +6,12 @@ A modern cybersecurity awareness platform that helps users **identify, understan
 
 ---
 
-## 🖥️ Preview
+
 
 ## 🖥️ Preview
 
 <p align="center">
-  <img src="./screenshots/Screenshot 2026-09-26 194327.png" alt="CyberSathi Preview" width="850"/>
+  <img src="./screenshots/cybersathi-home.png" alt="CyberSathi Preview" width="850"/>
 </p>
 
 ---
