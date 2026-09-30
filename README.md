@@ -41,6 +41,8 @@ CyberSathi aims to:
 
 ---
 
+Visit Website: https://cybersathi-pme1.vercel.app/
+
 ## 🏗️ Architecture
 
 ```text
@@ -55,4 +57,4 @@ SQLAlchemy
 PostgreSQL
 
 
-Visit Website: https://cybersathi-pme1.vercel.app/
+
